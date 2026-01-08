@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Speed Math</title>
+
+<style>
+  body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: linear-gradient(135deg, #060b1a, #0a1f44);
+    color: white;
+  }
+
+  h1 {
+    text-align: center;
+    margin-top: 30px;
+    font-size: 3rem;
+  }
+
+  h2 {
+    text-align: center;
+    font-weight: normal;
+    color: #cbd5ff;
+    margin-bottom: 40px;
+  }
+
+  /* FORCE 6 BY 1 */
+  .tiles {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    max-width: 100%;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+  }
+
+  .tiles::-webkit-scrollbar {
+    height: 10px;
+  }
+
+  .tiles::-webkit-scrollbar-thumb {
+    background: #6c8cff;
+    border-radius: 10px;
+  }
+
+  .tile {
+    flex: 0 0 220px; /* fixed width = always one row */
+    height: 160px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 18px;
+    padding: 18px;
+    text-decoration: none;
+    color: white;
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    position: relative;
+  }
+
+  .tile:hover {
+    transform: translateY(-8px) scale(1.03);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+  }
+
+  .tile:active {
+    transform: scale(0.98);
+  }
+
+  .tile::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    opacity: 0;
+    transition: opacity 0.25s;
+    background: radial-gradient(circle at top, #7aa2ff, transparent 70%);
+  }
+
+  .tile:hover::after {
+    opacity: 1;
+  }
+
+  .title {
+    font-size: 1.05rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+    color: #c7d2ff;
+  }
+</style>
+</head>
+
+<body>
+
+<h1>Speed Math</h1>
+<h2>IF you want to play Roblox..</h2>
+
+<div class="tiles">
+  <a class="tile" href="oneone.html">
+    <div class="title">3+3=? or 9-5=?</div>
+    <div class="subtitle">1-digit +/- 1 digit</div>
+  </a>
+
+  <a class="tile" href="twoone.html">
+    <div class="title">15-5=?</div>
+    <div class="subtitle">2-digit - 1 digit</div>
+  </a>
+
+  <a class="tile" href="twotwo.html">
+    <div class="title">11+22=? or 33-11-?</div>
+    <div class="subtitle">2-digit +/- 2-digit</div>
+  </a>
+
+  <a class="tile" href="https://akmu2014.github.io/quickmath/" target="_blank">
+    <div class="title">123+123=? or 987-87=?</div>
+    <div class="subtitle">3-digit +/- 2-digit</div>
+  </a>
+
+  <a class="tile" href="onebyone.html">
+    <div class="title">5x5=?</div>
+    <div class="subtitle">1-digit x 1-digit</div>
+  </a>
+
+  <a class="tile" href="twobyone.html">
+    <div class="title">12x2=?</div>
+    <div class="subtitle">2-digit x 1-digit</div>
+  </a>
+</div>
+
+</body>
+</html>
