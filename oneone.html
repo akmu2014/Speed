@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Math Quiz (1-Digit, Vertical)</title>
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: system-ui, -apple-system, Arial, sans-serif;
+      background: #0b0f1a;
+      color: #fff;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .app {
+      min-height: 100vh;
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 16px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .topbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .backBtn{
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.10);
+      color: #fff;
+      font-weight: 900;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .pill {
+      flex: 1;
+      text-align: center;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .vertMath {
+      font-family: ui-monospace, monospace;
+      font-size: 32px;
+      font-weight: 900;
+      text-align: right;
+      min-width: 4ch;
+    }
+
+    .vertMath .r { display: flex; justify-content: flex-end; gap: 0.6ch; }
+    .vertMath .op { width: 1ch; text-align: center; }
+    .vertMath .line { border-top: 3px solid #fff; margin: 6px 0 4px; }
+
+    .hint { margin-top: 10px; opacity: 0.75; }
+
+    .timerWrap {
+      margin-top: 12px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      height: 10px;
+      overflow: hidden;
+    }
+    .timerBar {
+      height: 100%;
+      background: rgba(255,255,255,0.55);
+      transform-origin: left;
+      transform: scaleX(1);
+    }
+
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .choiceBtn {
+      padding: 16px;
+      border-radius: 16px;
+      border: 2px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+      font-weight: 900;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .choiceBtn:disabled { opacity: 0.95; cursor: default; }
+
+    .correct { border-color: #22c55e !important; }
+    .wrong { border-color: #ef4444 !important; }
+
+    .restart {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.16);
+      color: #fff;
+      font-weight: 900;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+<div class="app">
+  <div class="topbar">
+    <button class="backBtn" onclick="location.href='https://akmu2014.github.io/Speed/'">← Back</button>
+    <div class="pill" id="roundPill">Round 1 / 10</div>
+    <div class="pill" id="scorePill">Score: 0</div>
+  </div>
+
+  <div class="card">
+    <div id="questionText"></div>
+    <div class="hint" id="hintText">Tap an answer (3 seconds).</div>
+
+    <div class="timerWrap"><div class="timerBar" id="timerBar"></div></div>
+
+    <div class="choices" id="choicesArea"></div>
+    <button class="restart" id="restartBtn" style="display:none;">Restart</button>
+  </div>
+</div>
+
+<script>
+const TIME_LIMIT_MS = 3000; // 3 seconds
+const FEEDBACK_MS = 600;
+
+let quiz = [], idx = 0, score = 0;
+let timer, timeout, locked = false;
+
+const roundPill = document.getElementById("roundPill");
+const scorePill = document.getElementById("scorePill");
+const questionText = document.getElementById("questionText");
+const hintText = document.getElementById("hintText");
+const choicesArea = document.getElementById("choicesArea");
+const timerBar = document.getElementById("timerBar");
+const restartBtn = document.getElementById("restartBtn");
+
+function rand(a,b){ return Math.floor(Math.random()*(b-a+1))+a; }
+function shuffle(a){ return a.sort(()=>Math.random()-0.5); }
+
+/* UPDATED:
+   - Addition questions must have answer > 10
+   - Subtraction unchanged
+*/
+function makeQuestion(add = true){
+  let a, b, ans;
+
+  if (add) {
+    do {
+      a = rand(0, 9);
+      b = rand(0, 9);
+      ans = a + b;
+    } while (ans <= 10);
+    return { a, b, op: "+", ans, opts: makeOptions(ans, 18) };
+  } else {
+    a = rand(0, 9);
+    b = rand(0, 9);
+    if (b > a) [a, b] = [b, a];
+    ans = a - b;
+    return { a, b, op: "−", ans, opts: makeOptions(ans, 18) };
+  }
+}
+
+function makeOptions(ans, maxVal){
+  // keep generating until we have 4 unique values (including the answer)
+  const set = new Set([ans]);
+  while (set.size < 4) set.add(rand(0, maxVal));
+  return shuffle(Array.from(set));
+}
+
+function buildQuiz(){
+  quiz = [];
+  for(let i=0;i<5;i++) quiz.push(makeQuestion(true));   // additions (>10 only)
+  for(let i=0;i<5;i++) quiz.push(makeQuestion(false));  // subtractions
+  shuffle(quiz);
+}
+
+function render(){
+  const q = quiz[idx];
+  roundPill.textContent = `Round ${idx+1} / 10`;
+  scorePill.textContent = `Score: ${score}`;
+  hintText.textContent = "Tap an answer (3 seconds).";
+
+  questionText.innerHTML = `
+    <div class="vertMath">
+      <div class="r">${q.a}</div>
+      <div class="r"><span class="op">${q.op}</span>${q.b}</div>
+      <div class="line"></div>
+      <div class="r">?</div>
+    </div>`;
+
+  choicesArea.innerHTML = "";
+  q.opts.forEach(v => {
+    const b = document.createElement("button");
+    b.className = "choiceBtn";
+    b.textContent = v;
+    b.onclick = () => answer(v, b);
+    choicesArea.appendChild(b);
+  });
+
+  startTimer();
+}
+
+function startTimer(){
+  clearTimeout(timeout); clearInterval(timer);
+  locked = false;
+  const start = performance.now();
+  timerBar.style.transform = "scaleX(1)";
+
+  timer = setInterval(() => {
+    const r = 1 - (performance.now() - start) / TIME_LIMIT_MS;
+    timerBar.style.transform = `scaleX(${Math.max(0, r)})`;
+  }, 40);
+
+  timeout = setTimeout(() => fail(), TIME_LIMIT_MS);
+}
+
+function disableChoices(){
+  choicesArea.querySelectorAll("button").forEach(b => b.disabled = true);
+}
+
+function answer(v, btn){
+  if (locked) return;
+  locked = true;
+
+  clearTimeout(timeout); clearInterval(timer);
+  disableChoices();
+
+  const q = quiz[idx];
+  if (v === q.ans) {
+    score++;
+    btn.classList.add("correct");
+  } else {
+    btn.classList.add("wrong");
+    // highlight correct
+    choicesArea.querySelectorAll("button").forEach(b => {
+      if (Number(b.textContent) === q.ans) b.classList.add("correct");
+    });
+  }
+
+  setTimeout(next, FEEDBACK_MS);
+}
+
+function fail(){
+  if (locked) return;
+  locked = true;
+
+  disableChoices();
+  // highlight correct
+  const q = quiz[idx];
+  choicesArea.querySelectorAll("button").forEach(b => {
+    if (Number(b.textContent) === q.ans) b.classList.add("correct");
+  });
+
+  setTimeout(next, FEEDBACK_MS);
+}
+
+function next(){
+  idx++;
+  if (idx >= quiz.length) end();
+  else render();
+}
+
+function end(){
+  clearTimeout(timeout); clearInterval(timer);
+  questionText.innerHTML = `<div class="vertMath">${Math.round(score/10*100)}% (${score}/10)</div>`;
+  choicesArea.innerHTML = "";
+  timerBar.style.transform = "scaleX(0)";
+  restartBtn.style.display = "block";
+}
+
+restartBtn.onclick = () => {
+  idx = 0;
+  score = 0;
+  restartBtn.style.display = "none";
+  buildQuiz();
+  render();
+};
+
+buildQuiz();
+render();
+</script>
+</body>
+</html>
