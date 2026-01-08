@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Math Quiz (2-Digit Vertical)</title>
+
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+      font-family: system-ui, -apple-system, Arial, sans-serif;
+      background: #0b0f1a;
+      color: #fff;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+
+    .app {
+      min-height: 100vh;
+      max-width: 520px;
+      margin: 0 auto;
+      padding: 16px;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .topbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .backBtn{
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(255,255,255,0.10);
+      color: #fff;
+      font-weight: 900;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .pill {
+      flex: 1;
+      text-align: center;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      font-weight: 800;
+      font-size: 13px;
+    }
+
+    .card {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 16px;
+      padding: 16px;
+    }
+
+    .vertMath {
+      font-family: ui-monospace, monospace;
+      font-size: 32px;
+      font-weight: 900;
+      text-align: right;
+      min-width: 5ch;
+      user-select: none;
+    }
+
+    .vertMath .r { display: flex; justify-content: flex-end; gap: 0.6ch; }
+    .vertMath .op { width: 1ch; text-align: center; }
+    .vertMath .line { border-top: 3px solid #fff; margin: 6px 0 4px; }
+
+    .hint { margin-top: 10px; opacity: 0.75; }
+
+    .timerWrap {
+      margin-top: 12px;
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      height: 10px;
+      overflow: hidden;
+    }
+    .timerBar {
+      height: 100%;
+      background: rgba(255,255,255,0.55);
+      transform-origin: left;
+      transform: scaleX(1);
+    }
+
+    .controlsRow{
+      display: flex;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.16);
+      color: #fff;
+      font-weight: 900;
+      cursor: pointer;
+    }
+    .btn:disabled { opacity: 0.6; cursor: default; }
+
+    .choices {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .choiceBtn {
+      padding: 16px;
+      border-radius: 16px;
+      border: 2px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.05);
+      color: #fff;
+      font-weight: 900;
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .choiceBtn:disabled { opacity: 0.95; cursor: default; }
+
+    .correct { border-color: #22c55e !important; }
+    .wrong { border-color: #ef4444 !important; }
+
+    .restart {
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.16);
+      color: #fff;
+      font-weight: 900;
+      cursor: pointer;
+      width: 100%;
+    }
+  </style>
+</head>
+
+<body>
+<div class="app">
+  <div class="topbar">
+    <button class="backBtn" onclick="location.href='https://akmu2014.github.io/Speed/'">← Back</button>
+    <div class="pill" id="roundPill">Round 1 / 10</div>
+    <div class="pill" id="scorePill">Score: 0</div>
+  </div>
+
+  <div class="card">
+    <div id="questionText"></div>
+    <div class="hint" id="hintText">Tap an answer (8 seconds).</div>
+
+    <div class="timerWrap"><div class="timerBar" id="timerBar"></div></div>
+
+    <!-- NEW: Pause/Resume button -->
+    <div class="controlsRow">
+      <button class="btn" id="pauseBtn">Pause Timer</button>
+    </div>
+
+    <div class="choices" id="choicesArea"></div>
+    <button class="restart" id="restartBtn" style="display:none;">Restart</button>
+  </div>
+</div>
+
+<script>
+/* ===== Settings ===== */
+const TIME_LIMIT_MS = 8000;
+const FEEDBACK_MS = 650;
+
+const TOTAL_Q = 10;
+const ADD_Q = 5;
+const SUB_Q = 5;
+
+/* ===== State ===== */
+let quiz = [], idx = 0, score = 0;
+let locked = false;
+
+let timer = null;
+let timeout = null;
+
+let remainingMs = TIME_LIMIT_MS;
+let startStamp = 0;
+let isPaused = false;
+
+/* ===== Elements ===== */
+const roundPill = document.getElementById("roundPill");
+const scorePill = document.getElementById("scorePill");
+const questionText = document.getElementById("questionText");
+const hintText = document.getElementById("hintText");
+const choicesArea = document.getElementById("choicesArea");
+const timerBar = document.getElementById("timerBar");
+const restartBtn = document.getElementById("restartBtn");
+const pauseBtn = document.getElementById("pauseBtn");
+
+/* ===== Utils ===== */
+function rand(min, max){ return Math.floor(Math.random() * (max - min + 1)) + min; }
+function shuffle(arr){ return arr.sort(() => Math.random() - 0.5); }
+function clearTimers(){
+  if (timer) { clearInterval(timer); timer = null; }
+  if (timeout) { clearTimeout(timeout); timeout = null; }
+}
+function disableChoices(){ choicesArea.querySelectorAll("button").forEach(b => b.disabled = true); }
+
+/* Make 4 options: answer + 3 unique distractors */
+function makeOptions(ans, minV, maxV){
+  const set = new Set([ans]);
+  const offsets = [-30,-20,-15,-12,-10,-8,-6,-5,-4,-3,-2,-1,1,2,3,4,5,6,8,10,12,15,20,30];
+  while (set.size < 4) {
+    const useOffset = Math.random() < 0.75;
+    let cand = useOffset ? (ans + offsets[rand(0, offsets.length - 1)]) : rand(minV, maxV);
+    cand = Math.max(minV, Math.min(maxV, cand));
+    if (cand !== ans) set.add(cand);
+  }
+  return shuffle(Array.from(set));
+}
+
+/* ===== Questions ===== */
+function makeAdditionQuestion(){
+  let a, b, ans;
+  while (true) {
+    a = rand(10, 99);
+    b = rand(10, 99);
+    const onesSum = (a % 10) + (b % 10);
+    if (onesSum > 10) { ans = a + b; break; }
+  }
+  return { a, b, op: "+", ans, opts: makeOptions(ans, 0, 198) };
+}
+
+function makeSubtractionQuestion(){
+  let a, b, ans;
+  while (true) {
+    a = rand(10, 99);
+    b = rand(10, 99);
+    if (b > a) [a, b] = [b, a];
+    if ((a % 10) < (b % 10)) { ans = a - b; break; } // borrow required
+  }
+  return { a, b, op: "−", ans, opts: makeOptions(ans, 0, 99) };
+}
+
+function buildQuiz(){
+  quiz = [];
+  const used = new Set();
+
+  while (quiz.filter(q => q.op === "+").length < ADD_Q) {
+    const q = makeAdditionQuestion();
+    const key = `A:${q.a}+${q.b}`;
+    if (used.has(key)) continue;
+    used.add(key);
+    quiz.push(q);
+  }
+  while (quiz.filter(q => q.op === "−").length < SUB_Q) {
+    const q = makeSubtractionQuestion();
+    const key = `S:${q.a}-${q.b}`;
+    if (used.has(key)) continue;
+    used.add(key);
+    quiz.push(q);
+  }
+
+  shuffle(quiz);
+}
+
+/* ===== Timer with Pause/Resume ===== */
+function resetTimerForQuestion(){
+  clearTimers();
+  isPaused = false;
+  remainingMs = TIME_LIMIT_MS;
+  pauseBtn.textContent = "Pause Timer";
+  pauseBtn.disabled = false;
+  timerBar.style.transform = "scaleX(1)";
+}
+
+function startTimer(){
+  // start from remainingMs
+  clearTimers();
+  startStamp = performance.now();
+
+  timer = setInterval(() => {
+    if (isPaused) return;
+    const elapsed = performance.now() - startStamp;
+    const left = Math.max(0, remainingMs - elapsed);
+    timerBar.style.transform = `scaleX(${left / TIME_LIMIT_MS})`;
+    if (left <= 0) timerBar.style.transform = "scaleX(0)";
+  }, 40);
+
+  timeout = setTimeout(() => fail(), remainingMs);
+}
+
+function pauseTimer(){
+  if (isPaused) return;
+  isPaused = true;
+
+  // compute remaining
+  const elapsed = performance.now() - startStamp;
+  remainingMs = Math.max(0, remainingMs - elapsed);
+
+  clearTimers(); // stop interval + timeout
+  pauseBtn.textContent = "Resume Timer";
+}
+
+function resumeTimer(){
+  if (!isPaused) return;
+  isPaused = false;
+
+  pauseBtn.textContent = "Pause Timer";
+  startTimer(); // continues using remainingMs
+}
+
+pauseBtn.addEventListener("click", () => {
+  if (locked) return;               // don't allow pausing after answer chosen
+  if (idx >= quiz.length) return;   // no pausing after finish
+  if (!isPaused) pauseTimer();
+  else resumeTimer();
+});
+
+/* ===== Render / Flow ===== */
+function render(){
+  const q = quiz[idx];
+
+  locked = false;
+  resetTimerForQuestion();
+
+  roundPill.textContent = `Round ${idx + 1} / ${TOTAL_Q}`;
+  scorePill.textContent = `Score: ${score}`;
+  hintText.textContent = "Tap an answer (8 seconds).";
+
+  questionText.innerHTML = `
+    <div class="vertMath" aria-label="${q.a} ${q.op === '+' ? 'plus' : 'minus'} ${q.b} equals what">
+      <div class="r">${q.a}</div>
+      <div class="r"><span class="op">${q.op}</span>${q.b}</div>
+      <div class="line"></div>
+      <div class="r">?</div>
+    </div>`;
+
+  choicesArea.innerHTML = "";
+  q.opts.forEach(v => {
+    const b = document.createElement("button");
+    b.className = "choiceBtn";
+    b.textContent = v;
+    b.onclick = () => answer(v, b);
+    choicesArea.appendChild(b);
+  });
+
+  startTimer();
+}
+
+function answer(v, btn){
+  if (locked) return;
+  locked = true;
+
+  clearTimers();
+  pauseBtn.disabled = true; // disable pause/resume once answered
+
+  disableChoices();
+
+  const q = quiz[idx];
+  if (v === q.ans) {
+    score++;
+    btn.classList.add("correct");
+  } else {
+    btn.classList.add("wrong");
+    choicesArea.querySelectorAll("button").forEach(b => {
+      if (Number(b.textContent) === q.ans) b.classList.add("correct");
+    });
+  }
+
+  setTimeout(next, FEEDBACK_MS);
+}
+
+function fail(){
+  if (locked) return;
+  locked = true;
+
+  clearTimers();
+  pauseBtn.disabled = true;
+
+  disableChoices();
+  const q = quiz[idx];
+  choicesArea.querySelectorAll("button").forEach(b => {
+    if (Number(b.textContent) === q.ans) b.classList.add("correct");
+  });
+
+  setTimeout(next, FEEDBACK_MS);
+}
+
+function next(){
+  idx++;
+  if (idx >= quiz.length) end();
+  else render();
+}
+
+function end(){
+  clearTimers();
+  locked = true;
+
+  pauseBtn.disabled = true;
+  timerBar.style.transform = "scaleX(0)";
+
+  const pct = Math.round((score / TOTAL_Q) * 100);
+  questionText.innerHTML = `<div class="vertMath">${pct}% (${score}/${TOTAL_Q})</div>`;
+  choicesArea.innerHTML = "";
+  restartBtn.style.display = "block";
+  roundPill.textContent = "Finished";
+  scorePill.textContent = `Score: ${score}`;
+  hintText.textContent = "Tap Restart for a new set.";
+}
+
+restartBtn.onclick = () => {
+  idx = 0;
+  score = 0;
+  restartBtn.style.display = "none";
+  buildQuiz();
+  render();
+};
+
+/* ===== Start ===== */
+buildQuiz();
+render();
+</script>
+</body>
+</html>
