@@ -394,7 +394,7 @@ function renderQuestion(){
 
   const item = quiz[idx];
   questionText.innerHTML = renderVerticalMath(item.a, item.b, item.op);
-  hintText.textContent = "Tap an answer (9 seconds).";
+  hintText.textContent = "Tap an answer (10 seconds).";
 
   choicesArea.innerHTML = "";
   item.choices.forEach(v => {
@@ -466,3 +466,4 @@ renderQuestion();
 </script>
 </body>
 </html>
+
