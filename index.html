@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Speed Math</title>
+  <meta name="theme-color" content="#000000" />
+
+  <style>
+    :root{
+      --bg: #000;
+      --text: rgba(255,255,255,0.95);
+      --muted: rgba(255,255,255,0.70);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+
+    body{
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .wrap{
+      min-height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 18px 14px 28px;
+      gap: 16px;
+    }
+
+    header{
+      width: 100%;
+      max-width: 980px;
+      text-align: center;
+      padding: 14px 10px 6px;
+    }
+
+    h1{
+      margin: 0;
+      font-size: clamp(28px, 4.6vw, 44px);
+      font-weight: 800;
+    }
+
+    .subtitle{
+      margin-top: 8px;
+      font-size: clamp(14px, 2.6vw, 18px);
+      color: var(--muted);
+    }
+
+    .grid{
+      width: 100%;
+      max-width: 980px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    @media (min-width: 760px){
+      .grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    }
+
+    /* ===== TILE ===== */
+    .tile{
+      position: relative;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 18px;
+      padding: 16px 14px;
+      min-height: 132px;
+      cursor: pointer;
+      color: inherit;
+      background: #111;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.55);
+      transition: transform 160ms ease, box-shadow 160ms ease;
+    }
+
+    /* IMAGE LAYER */
+    .tile::after{
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: var(--bgimg);
+      background-repeat: no-repeat;
+      background-position: center;
+      background-size: calc(35% * var(--imgScale, 1));
+      z-index: 0;
+      filter: saturate(1.05) contrast(1.05);
+    }
+
+    /* DARK TINT */
+    .tile::before{
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.75));
+      z-index: 1;
+    }
+
+    .tile > *{
+      position: relative;
+      z-index: 2;
+    }
+
+    .tile-title{
+      font-size: clamp(22px, 3.7vw, 29px);
+      font-weight: 850;
+      margin: 0 0 8px;
+      text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    }
+
+    .tile-sub{
+      font-size: 14px;
+      color: rgba(255,255,255,0.85);
+      text-shadow: 0 2px 10px rgba(0,0,0,0.6);
+    }
+
+    .go{
+      position: absolute;
+      right: 12px;
+      bottom: 10px;
+      font-size: 20px;
+      opacity: 0.65;
+    }
+
+    .tile:hover{
+      transform: translateY(-2px) scale(1.01);
+      box-shadow: 0 14px 40px rgba(0,0,0,0.7);
+    }
+  </style>
+</head>
+
+<body>
+  <main class="wrap">
+    <header>
+      <h1>Speed Math</h1>
+      <div class="subtitle">IF you want to play Roblox..</div>
+    </header>
+
+    <section class="grid">
+
+      <!-- sixseven.jpg → 1.3× -->
+      <button class="tile"
+        data-href="oneone.html"
+        style="--bgimg:url('Images/sixseven.jpg'); --imgScale:1.3;">
+        <p class="tile-title">3+3=? or 9-5=?</p>
+        <p class="tile-sub">1-digit +/- 1 digit</p>
+        <span class="go">›</span>
+      </button>
+
+      <!-- tongtong.jpg → default -->
+      <button class="tile"
+        data-href="twoone.html"
+        style="--bgimg:url('Images/tongtong.jpg');">
+        <p class="tile-title">15-5=?</p>
+        <p class="tile-sub">2-digit - 1 digit</p>
+        <span class="go">›</span>
+      </button>
+
+      <!-- growagarden.jpg → 2.2× -->
+      <button class="tile"
+        data-href="twotwo.html"
+        style="--bgimg:url('Images/growagarden.jpg'); --imgScale:2.2;">
+        <p class="tile-title">11+22=? or 33-11=?</p>
+        <p class="tile-sub">2-digit +/- 2-digit</p>
+        <span class="go">›</span>
+      </button>
+
+      <!-- minecraft.jpg → 2.2× -->
+      <button class="tile"
+        data-href="threetwo.html"
+        style="--bgimg:url('Images/minecraft.jpg'); --imgScale:2.2;">
+        <p class="tile-title">123+123=? or 987-87=?</p>
+        <p class="tile-sub">3-digit +/- 2-digit</p>
+        <span class="go">›</span>
+      </button>
+
+      <!-- person1.jpg → default -->
+      <button class="tile"
+        data-href="onebyone.html"
+        style="--bgimg:url('Images/person1.jpg');">
+        <p class="tile-title">5×5=?</p>
+        <p class="tile-sub">1-digit × 1-digit</p>
+        <span class="go">›</span>
+      </button>
+
+      <!-- roblox.jpg → 3× -->
+      <button class="tile"
+        data-href="twobyone.html"
+        style="--bgimg:url('Images/roblox.jpg'); --imgScale:3;">
+        <p class="tile-title">12×2=?</p>
+        <p class="tile-sub">2-digit × 1-digit</p>
+        <span class="go">›</span>
+      </button>
+
+    </section>
+  </main>
+
+  <script>
+    document.querySelectorAll(".tile").forEach(tile => {
+      tile.addEventListener("click", () => {
+        const href = tile.dataset.href;
+        if (href) location.href = href;
+      });
+    });
+  </script>
+</body>
+</html>
